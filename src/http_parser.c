@@ -7,9 +7,9 @@ struct http_request parse_request(char *request_str) {
     struct http_request req;
     char *line;
     int i = 0;
-    line = strtok(request_str, " \n");// Split by newline and space(" ") delimeter
+    line = strtok(request_str, " \n\n");// Split by newline and space(" ") delimeter
     req.method = strdup(line);
-    line = strtok(NULL, " \n");// get next pointer in split string
+    line = strtok(NULL, " \n\n");// get next pointer in split string
     if (line) {
         // Check if request path contains query string
         char *query_start = strchr(line, '?');
@@ -23,7 +23,7 @@ struct http_request parse_request(char *request_str) {
     }
     // Parse request headers
     req.headers = NULL;
-    while ((line = strtok(NULL, "\n")) && *line != '\0') {
+    while ((line = strtok(NULL, "\n\n")) && *line != '\0') {
         if (i == 0) {
             req.headers = strdup(line);
         } else {
