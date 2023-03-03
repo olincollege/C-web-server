@@ -1,6 +1,5 @@
 #include "readfiles.h"
 #include <dirent.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,25 +13,22 @@ size_t get_file_size(char *filename) {
         perror("Could not open file");
         exit(1);
 
-    }
-    // Current size limit is 32MB
-    else if (st.st_size > 32000000) {
+    } else if (st.st_size > MAX_FILE_SIZE) {
         perror("File too large to read");
         exit(2);
     }
     return st.st_size;
 }
 
-bool get_is_dir(char *filename) {
+int get_type(char *filename) {
     struct stat st;
     stat(filename, &st);
     if (S_ISREG(st.st_mode)) {
-        return false;
+        return FILETYPE_FILE;
     } else if (S_ISDIR(st.st_mode)) {
-        return true;
+        return FILETYPE_DIRECTORY;
     } else {
-        perror("Incompatible File Type");
-        exit(3);
+        return FILETYPE_OTHER;
     }
 }
 
@@ -64,39 +60,47 @@ void read_file(char *path, fwmd *myfile) {
 
 void read_directory(char *path, fwmd *myfile) {
     DIR *dp;
-    struct dirent *dirp;
+    struct dirent *ent;
     if ((dp = opendir(path)) == NULL) {
         perror("Error opening directory");
         exit(1);
     }
-    FILE *temp = fopen("__temp_buffer_storage_.txt", "w");
-    if (!temp) {
-        perror("Could not open file");
-        exit(1);
-    }
-    while ((dirp = readdir(dp)) != NULL) {
-        if (strcmp(dirp->d_name, "__temp_buffer_storage_.txt") != 0) {
-            fprintf(temp, "- %s\n", dirp->d_name);
+    while ((ent = readdir(dp)) != NULL) {
+        if (ent->d_type == DT_DIR) {
+            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {
+                continue;
+            }
+            char *item_str = malloc(strlen(ent->d_name) + 3);
+            sprintf(item_str, "- %s/\n", ent->d_name);
+            myfile->buf_size += strlen(item_str);
+            myfile->content_buf = realloc(myfile->content_buf, myfile->buf_size + 1);
+            strcat(myfile->content_buf, item_str);
+            free(item_str);
+        } else if (ent->d_type == DT_REG) {
+            char *item_str = malloc(strlen(ent->d_name) + 2);
+            sprintf(item_str, "- %s\n", ent->d_name);
+            myfile->buf_size += strlen(item_str);
+            myfile->content_buf = realloc(myfile->content_buf, myfile->buf_size + 1);
+            strcat(myfile->content_buf, item_str);
+            free(item_str);
         }
     }
-    fclose(temp);
     closedir(dp);
-    read_file("__temp_buffer_storage_.txt", myfile);
-    remove("__temp_buffer_storage_.txt");
 }
+
 
 void create_file_with_metadata(char *path) {
     fwmd myfile = {0, 0, 0, 0};
     myfile.file_ext = get_file_ext(path);
-    myfile.is_dir = get_is_dir(path);
-    if (myfile.is_dir == false) {
+    myfile.type = get_type(path);
+    if (myfile.type == FILETYPE_FILE) {
         read_file(path, &myfile);
         // Return struct here instead of printing
         printf("File Extension %s\n", myfile.file_ext);
         printf("File Size: %zu bytes\n\n", myfile.buf_size);
         printf("%s", myfile.content_buf);
         free(myfile.content_buf);
-    } else {
+    } else if (myfile.type == FILETYPE_DIRECTORY) {
         read_directory(path, &myfile);
         // Return struct here instead of printing
         printf("%s\n", path);

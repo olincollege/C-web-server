@@ -1,9 +1,17 @@
 #pragma once
 #include <stdlib.h>
-#include <stdbool.h>
+
+// Current size limit is 32MB
+const size_t MAX_FILE_SIZE = 32000000;
+
+typedef enum {
+    FILETYPE_FILE = 1,
+    FILETYPE_DIRECTORY = 2,
+    FILETYPE_OTHER = 3
+} type;
 
 typedef struct file_with_metadata {
-    bool is_dir;
+    int  type;
     char *file_ext;
     char *content_buf;
     size_t buf_size;
@@ -23,7 +31,7 @@ size_t get_file_size(char *filename);
  * @param filename 
  * @return char 
  */
-bool get_is_dir(char *filename);
+int get_type(char *filename);
 
 /**
  * Get the extension of a file.
