@@ -24,11 +24,9 @@ struct http_request parse_request(char *request_str) {
     // Parse request headers
     req.headers = NULL;
     while ((line = strtok(NULL, "\n\n")) && *line != '\0') {
-        if (i == 0) {
-            req.headers = strdup(line);
-        } else {
+        if (i > 0) {
             req.headers = realloc(req.headers, strlen(req.headers) + strlen(line) + 2);
-            strcat(req.headers, "\n");
+            strcat(req.headers, "\r\n");
             strcat(req.headers, line);
         }
         i++;
