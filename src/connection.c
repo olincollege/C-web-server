@@ -123,6 +123,7 @@ void handle_connection(int sockfd, struct sockaddr_in *client_addr) {
     }
 
     write_content_length_to_response(response);
+    add_header_to_response(response, "Connection", "close");
     add_header_to_response(response, "X-Powered-By", "Sanmoenta C Web Server");
     // send the response
     send_http_response(sockfd, response);
