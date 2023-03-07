@@ -34,10 +34,9 @@ struct http_request *parse_request(char *request_str) {
     // Parse request headers
     req->headers = NULL;
     while ((line = strtok(NULL, "\n\n")) && *line != '\0') {
-        if (i == 0) {
-            req->headers = strdup(line);
-        } else {
-            req->headers = realloc(req->headers, strlen(req->headers) + strlen(line) + 2);
+        if (i > 0) {
+            size_t offset = req->headers == NULL ? 0 : strlen(req->headers);
+            req->headers = realloc(req->headers, offset + strlen(line) + 2);
             strcat(req->headers, "\n");
             strcat(req->headers, line);
         }

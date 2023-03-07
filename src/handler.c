@@ -78,7 +78,6 @@ int handle_request(struct http_request *request, struct http_response *response)
     } else {
         response->body_size = filedata->buf_size;
         response->body = filedata->content_buf;
-        printf("Content type: %s from extension %s\n", get_content_type_from_ext(filedata->file_ext), filedata->file_ext);
         add_header_to_response(response, "Content-Type", get_content_type_from_ext(filedata->file_ext));
     }
 
