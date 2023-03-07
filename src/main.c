@@ -1,11 +1,21 @@
 #include "connection.h"
 #include <arpa/inet.h>
+#include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
+#include <unistd.h>
 
 #define PORT 80
+
+int sockfd = 0;
+
+void handle_sigterm(int sig) {
+    printf("Received SIGTERM, shutting down server");
+    close(sockfd);
+    exit(0);
+}
 
 struct sockaddr_in create_address(int port) {
     struct sockaddr_in addr;
@@ -16,7 +26,12 @@ struct sockaddr_in create_address(int port) {
 }
 
 int main() {
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    signal(SIGINT, handle_sigterm);
+    signal(SIGTERM, handle_sigterm);
+    signal(SIGSTOP, handle_sigterm);
+    signal(SIGABRT, handle_sigterm);
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (sockfd == -1) {
         perror("Error creating socket");

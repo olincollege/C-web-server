@@ -5,55 +5,133 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "handler.h"
+#include "parsing.h"
+
 #define BUFFER_SIZE 4096
 
 char *get_status_code_string(int status_code) {
     switch (status_code) {
         case 200:
-            return "OK";
+            return "200 OK";
+        case 204:
+            return "204 Created";
+        case 400:
+            return "400 Bad Request";
         case 404:
-            return "NOT FOUND";
+            return "404 Not Found";
+        case 500:
+            return "500 Internal Server Error";
+        case 501:
+            return "501 Not Implemented";
         default:
-            return "UNKNOWN";
+            return "500 Unknown";
     }
 }
 
-int serialize_response(struct HTTPResponse *response, char *buffer) {
-    int idx = sprintf(buffer, "HTTP/1.1 %d %s\n"
-                              "Content-Type: %s\n"
-                              "Content-Length: %ld\n",
-                      response->status, get_status_code_string(response->status), response->content_type, strlen(response->content));
-
-    idx += sprintf(buffer + idx, "X-Powered-By: C-Web-Server\n");
-
-    idx += sprintf(buffer + idx, "\n%s", response->content);
-
-    return idx;
+char* get_content_type_from_ext(char *ext) {
+    if (strcmp(ext, "txt") == 0) {
+        return "text/plain";
+    } else if (strcmp(ext, "html") == 0) {
+        return "text/html";
+    } else if (strcmp(ext, "css") == 0) {
+        return "text/css";
+    } else if (strcmp(ext, "js") == 0) {
+        return "text/javascript";
+    } else if (strcmp(ext, "png") == 0) {
+        return "image/png";
+    } else if (strcmp(ext, "jpg") == 0) {
+        return "image/jpeg";
+    } else if (strcmp(ext, "gif") == 0) {
+        return "image/gif";
+    } else if (strcmp(ext, "svg") == 0) {
+        return "image/svg+xml";
+    } else if (strcmp(ext, "ico") == 0) {
+        return "image/x-icon";
+    } else if (strcmp(ext, "json") == 0) {
+        return "application/json";
+    } else if (strcmp(ext, "pdf") == 0) {
+        return "application/pdf";
+    } else if (strcmp(ext, "zip") == 0) {
+        return "application/zip";
+    } else if (strcmp(ext, "xml") == 0) {
+        return "application/xml";
+    } else if (strcmp(ext, "mp3") == 0) {
+        return "audio/mpeg";
+    } else if (strcmp(ext, "mp4") == 0) {
+        return "video/mp4";
+    } else if (strcmp(ext, "webm") == 0) {
+        return "video/webm";
+    } else if (strcmp(ext, "ogg") == 0) {
+        return "video/ogg";
+    } else {
+        return "application/octet-stream";
+    }
 }
 
-void send_http_response(int sockfd, struct HTTPResponse *response) {
-    char *buffer = malloc(BUFFER_SIZE);
-    int num_bytes = serialize_response(response, buffer);
-    write(sockfd, buffer, num_bytes);
-    free(buffer);
+void internal_server_error(struct http_response *response) {
+    add_static_status_to_response(response, get_status_code_string(500));
+    add_static_body_to_response(response, "<h1>Internal Server Error</h1>"
+                                          "<p>Something went wrong on our end. Check the server console.</p>");
+    add_header_to_response(response, "Content-Type", "text/html");
 }
+
+
+void send_http_response(int sockfd, struct http_response *response) {
+    char* response_buffer = malloc(get_serialized_response_buffer_size(response));
+    size_t response_bytes = serialize_response(response, response_buffer);
+
+    write(sockfd, response_buffer, response_bytes);
+//    printf("Sending %zu-byte response \"%s\"\n", response_bytes, response_buffer);
+    free(response_buffer);
+}
+
+
 
 void handle_connection(int sockfd, struct sockaddr_in *client_addr) {
     char *buffer = malloc(BUFFER_SIZE);
 
-    ssize_t bytes_read = read(sockfd, buffer, BUFFER_SIZE);
+    size_t bytes_read = read(sockfd, buffer, BUFFER_SIZE);
     if (bytes_read == -1) {
         perror("Error reading from socket");
         return;
-    } else {
-        printf("Read %ld bytes from socket with %s: %s\n", bytes_read, inet_ntoa(client_addr->sin_addr), buffer);
     }
 
-    struct HTTPResponse response;
-    response.status = 404;
-    response.content_type = "text/html";
-    response.content = "<h1>404 Not Found</h1><p>The requested resource could not be found.</p>";
+    // parse request
+    struct http_request *request = parse_request(buffer);
+//    print_request(request);
 
-    send_http_response(sockfd, &response);
+    // create and allocate response
+    struct http_response *response = new_response();
+
+    // pass the handler the request and response
+    // the handler will fill in the response, and we'll send it back
+    int handler_error = handle_request(request, response);
+    if (handler_error != 0) {
+        // handler failed, send 500
+        perror("Encountered error in handler");
+        internal_server_error(response);
+    }
+
+    if(response->status == NULL) {
+        // handler didn't set status, set 200
+        if (response->body == NULL) {
+            add_static_status_to_response(response, get_status_code_string(204));
+        } else {
+            add_static_status_to_response(response, get_status_code_string(200));
+        }
+    }
+
+    write_content_length_to_response(response);
+    add_header_to_response(response, "X-Powered-By", "Sanmoenta C Web Server");
+    // send the response
+    send_http_response(sockfd, response);
+
+    // free the request and response
+    free_request(request);
+    free_response(response);
+
+    // close the socket, we're not implementing keep-alive
     close(sockfd);
 }
+
