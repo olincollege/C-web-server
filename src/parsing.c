@@ -121,12 +121,12 @@ void write_content_length_to_response(struct http_response *res) {
 }
 
 size_t get_serialized_response_buffer_size(struct http_response *res) {
-    // HTTP 1.1 status line + headers + body + 2 newlines + null terminator
-    return strlen(res->status) + res->header_size + res->body_size + 13;
+    // HTTP 1.1 + status line + CR, LF + headers + CR, LF, CR, LF + body + null terminator
+    return 9 + strlen(res->status) + 2 + res->header_size + 4 + res->body_size + 1;
 }
 
 size_t serialize_response(struct http_response *res, char *response_buf) {
-    size_t bytes_written = sprintf(response_buf, "HTTP/1.1 %s\n%s\n\n%s", res->status, res->headers, res->body);
+    size_t bytes_written = sprintf(response_buf, "HTTP/1.1 %s\r\n%s\r\n\r\n%s", res->status, res->headers, res->body);
     return bytes_written;
 }
 
