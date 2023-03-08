@@ -40,7 +40,7 @@ typedef enum {
  * @param error The `readfiles_error` value to convert to a string.
  * @return A string representation of the `readfiles_error` value.
  */
-const char* readfiles_error_string(readfiles_error error);
+const char *readfiles_error_string(readfiles_error error);
 
 /**
  * @function get_file_size
