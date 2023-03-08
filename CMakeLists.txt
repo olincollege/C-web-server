@@ -3,7 +3,14 @@ project(C_web_server C)
 
 set(CMAKE_C_STANDARD 11)
 
-include_directories(src)
+add_subdirectory(src)
 
-add_executable(C_web_server
-        src/main.c src/connection.h src/connection.c src/parsing.h src/parsing.c src/readfiles.h src/readfiles.c src/handler.h src/handler.c)
+add_executable(C_Web_Server src/main.c)
+
+target_link_libraries(C_Web_Server connection handler parsing readfiles)
+
+include(CTest)
+find_library(CRITERION criterion REQUIRED)
+set(CRITERION_FLAGS --verbose -j1)
+
+add_subdirectory(test)

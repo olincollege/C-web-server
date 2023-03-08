@@ -1,4 +1,5 @@
 #include "connection.h"
+#include "parsing.h"
 #include <arpa/inet.h>
 #include <signal.h>
 #include <stdio.h>
