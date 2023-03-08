@@ -18,5 +18,5 @@ target_link_libraries(test_readfiles
         PUBLIC ${CRITERION})
 add_test(
         NAME test_readfiles
-        COMMAND test_parsing ${CRITERION_FLAGS}
+        COMMAND test_readfiles ${CRITERION_FLAGS}
 )
