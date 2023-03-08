@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct http_request* new_request() {
+struct http_request *new_request() {
     struct http_request *req = malloc(sizeof(struct http_request));
     req->method = NULL;
     req->path = NULL;
@@ -17,35 +17,44 @@ struct http_request *parse_request(char *request_str) {
     struct http_request *req = new_request();
     char *line;
     int i = 0;
-    line = strtok(request_str, " \n\n");// Split by newline and space(" ") delimeter
+    // Parse request method, path and query string
+    line = strtok(request_str, " \n");
     req->method = strdup(line);
-    line = strtok(NULL, " \n\n");// get next pointer in split string
-    if (line) {
-        // Check if request path contains query string
-        char *query_start = strchr(line, '?');
-        if (query_start) {
-            req->path = strndup(line, query_start - line);
-            req->query_string = strdup(query_start + 1);
-        } else {
-            req->path = strdup(line);
-            req->query_string = NULL;
-        }
+    line = strtok(NULL, " \n");
+    char *qmark = strchr(line, '?');
+    if (qmark != NULL) {
+        req->query_string = strdup(qmark + 1);
+        *qmark = '\0';
     }
+    req->path = strdup(line);
+
+    // Parse HTTP version (skip it for now)
+    strtok(NULL, " \n");
+
     // Parse request headers
     req->headers = NULL;
     while ((line = strtok(NULL, "\n\n")) && *line != '\0') {
         if (i > 0) {
             size_t offset = req->headers == NULL ? 0 : strlen(req->headers);
-            req->headers = realloc(req->headers, offset + strlen(line) + 2);
+            req->headers = realloc(req->headers, offset + strlen(line) + 1);
             strcat(req->headers, "\n");
             strcat(req->headers, line);
+        } else {
+            req->headers = strdup(line);
         }
         i++;
+        if (*line == '\r') {
+            break;
+        }
     }
+    if (req->headers != NULL) {
+        req->headers[strlen(req->headers) - 3] = '\0';
+    }
+    line = strtok(NULL, "\r\n\r\n");
     // Parse request body (if any) and copy everything to req.body
     req->body = NULL;
-    if (line && *(line + 1) != '\0') {
-        req->body = strdup(line + 1);
+    if (line != NULL && *(line) != '\0') {
+        req->body = strdup(line);
     }
     return req;
 }
@@ -77,7 +86,7 @@ void add_header_to_response(struct http_response *res, char *header_name, char *
         sprintf(res->headers, "%s: %s", header_name, header_value);
     } else {
         size_t new_buffer_size = res->header_size + name_len + value_len + 5;
-        char* new_headers = realloc(res->headers, new_buffer_size);
+        char *new_headers = realloc(res->headers, new_buffer_size);
         res->headers = new_headers;
         res->header_size = new_buffer_size;
 
@@ -89,19 +98,19 @@ void add_header_to_response(struct http_response *res, char *header_name, char *
 }
 
 void add_static_status_to_response(struct http_response *res, char *status) {
-    res->status = malloc(strlen(status) + 1); // +1 for null terminator
+    res->status = malloc(strlen(status) + 1);// +1 for null terminator
     if (res->status != NULL) {
         strncpy(res->status, status, strlen(status));
-        res->status[strlen(status)] = '\0'; // add null terminator
+        res->status[strlen(status)] = '\0';// add null terminator
     }
 }
 
 void add_static_body_to_response(struct http_response *res, char *body) {
     res->body_size = strlen(body);
-    res->body = malloc(strlen(body) + 1); // +1 for null terminator
+    res->body = malloc(strlen(body) + 1);// +1 for null terminator
     if (res->body != NULL) {
         strncpy(res->body, body, strlen(body));
-        res->body[strlen(body)] = '\0'; // add null terminator
+        res->body[strlen(body)] = '\0';// add null terminator
     }
 }
 
@@ -137,7 +146,7 @@ void free_response(struct http_response *response) {
 }
 
 
-struct http_response * new_response() {
+struct http_response *new_response() {
     struct http_response *res = malloc(sizeof(struct http_response));
     res->status = NULL;
     res->headers = NULL;
