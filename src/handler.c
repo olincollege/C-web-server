@@ -27,6 +27,15 @@ int handle_request(struct http_request *request, struct http_response *response)
         return 0;
     }
 
+    if (strcmp(request->method, "GET") != 0) {
+        char *body = malloc(60);
+        add_static_status_to_response(response, get_status_code_string(405));
+        response->body_size = (size_t) sprintf(body, "<h1>501 Not Implemented</h1><p>Method not implemented.</p>");
+        add_static_body_to_response(response, body);
+        add_header_to_response(response, "Content-Type", "text/html");
+        return 0;
+    }
+
     // accounts for either ./index.html\0 or ./<path>\0
     char *path = malloc(path_len == 1 ? 13 : path_len + 4);
     size_t final_path_len = path_len == 1 ? 13 : path_len + 4;
