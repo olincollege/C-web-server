@@ -64,10 +64,9 @@ bool get_is_dir(char *filename, readfiles_error *error);
  * @function get_file_ext
  * @brief Gets the extension of a file.
  * @param filename The name of the file to get the extension of.
- * @param error Pointer to an error code to be set if there is an error.
  * @return A pointer to the extension of the file, or NULL if there is no extension.
  */
-char *get_file_ext(char *filename, readfiles_error *error);
+char *get_file_ext(char *filename);
 
 /**
  * @function read_file

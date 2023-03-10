@@ -1,5 +1,4 @@
 #include "connection.h"
-#include "parsing.h"
 #include <arpa/inet.h>
 #include <signal.h>
 #include <stdio.h>
@@ -12,7 +11,7 @@
 
 int sockfd = 0;
 
-void handle_sigterm(int sig) {
+void handle_sigterm(__attribute__((unused)) int signal) {
     printf("Received SIGTERM, shutting down server");
     close(sockfd);
     exit(0);
@@ -26,7 +25,7 @@ struct sockaddr_in create_address(int port) {
     return addr;
 }
 
-int main() {
+int main(void) {
     signal(SIGINT, handle_sigterm);
     signal(SIGTERM, handle_sigterm);
     signal(SIGSTOP, handle_sigterm);
@@ -71,6 +70,6 @@ int main() {
             printf("Accepted connection from %s\n", inet_ntoa(client_addr.sin_addr));
         }
 
-        handle_connection(client_sockfd, &client_addr);
+        handle_connection(client_sockfd);
     }
 }

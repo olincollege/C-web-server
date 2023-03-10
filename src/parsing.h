@@ -53,7 +53,7 @@ void print_request(struct http_request *req);
  *
  * @return A pointer to the new http_response struct
  */
-struct http_response *new_response();
+struct http_response *new_response(void);
 
 /**
  * Adds a header to a http_response struct

@@ -1,5 +1,4 @@
 #include "connection.h"
-#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -88,11 +87,11 @@ void send_http_response(int sockfd, struct http_response *response) {
 }
 
 
-void handle_connection(int sockfd, struct sockaddr_in *client_addr) {
+void handle_connection(int sockfd) {
     char *buffer = malloc(BUFFER_SIZE);
 
-    size_t bytes_read = read(sockfd, buffer, BUFFER_SIZE);
-    if (bytes_read == -1) {
+    size_t bytes_read = (size_t) read(sockfd, buffer, BUFFER_SIZE);
+    if (bytes_read == (size_t) -1) {
         perror("Error reading from socket");
         return;
     }

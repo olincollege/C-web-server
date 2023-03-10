@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct http_request *new_request() {
+struct http_request *new_request(void) {
     struct http_request *req = malloc(sizeof(struct http_request));
     req->method = NULL;
     req->path = NULL;
@@ -126,7 +126,7 @@ size_t get_serialized_response_buffer_size(struct http_response *res) {
 }
 
 size_t serialize_response(struct http_response *res, char *response_buf) {
-    size_t bytes_written = sprintf(response_buf, "HTTP/1.1 %s\r\n%s\r\n\r\n", res->status, res->headers);
+    size_t bytes_written = (size_t) sprintf(response_buf, "HTTP/1.1 %s\r\n%s\r\n\r\n", res->status, res->headers);
     if (res->body != NULL) {
         memcpy(response_buf + bytes_written, res->body, res->body_size);
         bytes_written += res->body_size;
@@ -150,7 +150,7 @@ void free_response(struct http_response *response) {
 }
 
 
-struct http_response *new_response() {
+struct http_response *new_response(void) {
     struct http_response *res = malloc(sizeof(struct http_response));
     res->status = NULL;
     res->headers = NULL;

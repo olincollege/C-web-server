@@ -6,6 +6,6 @@
 char *get_status_code_string(int status_code);
 char *get_content_type_from_ext(char *ext);
 
-void handle_connection(int sockfd, struct sockaddr_in *client_addr);
+void handle_connection(int sockfd);
 
 #endif//C_WEB_SERVER_CONNECTION_H

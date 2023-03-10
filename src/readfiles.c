@@ -41,7 +41,7 @@ size_t get_file_size(char *filename, readfiles_error *error) {
         *error = READFILES_FILE_TOO_LARGE;
         return 0;
     }
-    return st.st_size;
+    return (size_t) st.st_size;
 }
 
 bool get_is_dir(char *filename, readfiles_error *error) {
@@ -59,7 +59,7 @@ bool get_is_dir(char *filename, readfiles_error *error) {
     }
 }
 
-char *get_file_ext(char *filename, readfiles_error *error) {
+char *get_file_ext(char *filename) {
     char *dot_location = strrchr(filename, '.');
     if (dot_location == NULL) {
         return NULL;
@@ -152,11 +152,7 @@ fwmd *create_file_with_metadata(char *path, readfiles_error *error) {
         *error = READFILES_OUT_OF_MEMORY;
         return NULL;
     }
-    myfile->file_ext = get_file_ext(path, error);
-    if (*error != READFILES_OK) {
-        free(myfile);
-        return NULL;
-    }
+    myfile->file_ext = get_file_ext(path);
     myfile->is_dir = get_is_dir(path, error);
     if (*error != READFILES_OK) {
         free(myfile);
