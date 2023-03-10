@@ -6,7 +6,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
-const char* readfiles_error_string(readfiles_error error) {
+const char *readfiles_error_string(readfiles_error error) {
     switch (error) {
         case READFILES_OK:
             return "No error";
@@ -108,7 +108,7 @@ size_t read_directory(char *path, fwmd *myfile, readfiles_error *error) {
         if (strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0)
             continue;
         size_t entry_len = strlen(dirp->d_name) +
-                           3; // 3 extra characters for "- " and "\n"
+                           3;// 3 extra characters for "- " and "\n"
         char *entry_buf = malloc(entry_len);
         if (entry_buf == NULL) {
             *error = READFILES_OUT_OF_MEMORY;
@@ -145,13 +145,13 @@ size_t read_directory(char *path, fwmd *myfile, readfiles_error *error) {
     return myfile->buf_size;
 }
 
-fwmd* create_file_with_metadata(char *path, readfiles_error *error) {
+fwmd *create_file_with_metadata(char *path, readfiles_error *error) {
     fwmd *myfile = malloc(sizeof(fwmd));
+    *error = READFILES_OK;
     if (myfile == NULL) {
         *error = READFILES_OUT_OF_MEMORY;
         return NULL;
     }
-
     myfile->file_ext = get_file_ext(path, error);
     if (*error != READFILES_OK) {
         free(myfile);
