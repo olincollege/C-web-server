@@ -20,7 +20,7 @@ void handle_sigterm(__attribute__((unused)) int signal) {
 struct sockaddr_in create_address(int port) {
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;               // AF_INET is the internet address family
-    addr.sin_port = htons(port);             // htons converts to network byte order, which is big endian
+    addr.sin_port = htons((uint16_t) port);  // htons converts to network byte order, which is big endian
     addr.sin_addr.s_addr = htonl(INADDR_ANY);// inet_addr converts a string to an in_addr struct
     return addr;
 }
