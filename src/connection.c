@@ -20,6 +20,8 @@ char *get_status_code_string(int status_code) {
             return "400 Bad Request";
         case 404:
             return "404 Not Found";
+        case 405:
+            return "405 Method Not Allowed";
         case 500:
             return "500 Internal Server Error";
         case 501:
@@ -29,7 +31,7 @@ char *get_status_code_string(int status_code) {
     }
 }
 
-char* get_content_type_from_ext(char *ext) {
+char *get_content_type_from_ext(char *ext) {
     if (strcmp(ext, "txt") == 0) {
         return "text/plain";
     } else if (strcmp(ext, "html") == 0) {
@@ -78,14 +80,12 @@ void internal_server_error(struct http_response *response) {
 
 
 void send_http_response(int sockfd, struct http_response *response) {
-    char* response_buffer = malloc(get_serialized_response_buffer_size(response));
+    char *response_buffer = malloc(get_serialized_response_buffer_size(response));
     size_t response_bytes = serialize_response(response, response_buffer);
-
     write(sockfd, response_buffer, response_bytes);
-//    printf("Sending %zu-byte response \"%s\"\n", response_bytes, response_buffer);
+    //    printf("Sending %zu-byte response with body size %zu\n", response_bytes, response->body_size);
     free(response_buffer);
 }
-
 
 
 void handle_connection(int sockfd, struct sockaddr_in *client_addr) {
@@ -99,7 +99,7 @@ void handle_connection(int sockfd, struct sockaddr_in *client_addr) {
 
     // parse request
     struct http_request *request = parse_request(buffer);
-//    print_request(request);
+    //    print_request(request);
 
     // create and allocate response
     struct http_response *response = new_response();
@@ -113,7 +113,7 @@ void handle_connection(int sockfd, struct sockaddr_in *client_addr) {
         internal_server_error(response);
     }
 
-    if(response->status == NULL) {
+    if (response->status == NULL) {
         // handler didn't set status, set 200
         if (response->body == NULL) {
             add_static_status_to_response(response, get_status_code_string(204));
@@ -135,4 +135,3 @@ void handle_connection(int sockfd, struct sockaddr_in *client_addr) {
     // close the socket, we're not implementing keep-alive
     close(sockfd);
 }
-

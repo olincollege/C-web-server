@@ -18,7 +18,7 @@ void file_not_found(struct http_response *response) {
 int handle_request(struct http_request *request, struct http_response *response) {
     size_t path_len = strlen(request->path);
 
-    if(path_len > MAX_PATH_LEN) {
+    if (path_len > MAX_PATH_LEN) {
         char *body = malloc(75);
         add_static_status_to_response(response, get_status_code_string(404));
         response->body_size = sprintf(body, "<h1>400 Bad Request</h1><p>Path too long. Max %d characters.</p>", MAX_PATH_LEN);
@@ -28,16 +28,16 @@ int handle_request(struct http_request *request, struct http_response *response)
     }
 
     // accounts for either ./index.html\0 or ./<path>\0
-    char* path = malloc(path_len == 1 ? 13 : path_len + 4);
+    char *path = malloc(path_len == 1 ? 13 : path_len + 4);
     size_t final_path_len = path_len == 1 ? 13 : path_len + 4;
 
-    if(path_len == 1) {
+    if (path_len == 1) {
         // path is /, correct to index.html
         strcpy(path, "./index.html");
     } else {
         // remove first /
         path[0] = '.';
-        strcpy(path+1, request->path);
+        strcpy(path + 1, request->path);
     }
 
     readfiles_error ferr = READFILES_OK;
@@ -61,8 +61,8 @@ int handle_request(struct http_request *request, struct http_response *response)
     }
 
 
-    if(filedata->is_dir) {
-        char* body = malloc(final_path_len + 93);
+    if (filedata->is_dir) {
+        char *body = malloc(final_path_len + 93);
         add_static_status_to_response(response, get_status_code_string(501));
         response->body_size = sprintf(body, "<h1>501 Not Implemented</h1><p>The file %s is a directory. Contents listing coming soon.</p>", path);
         add_static_body_to_response(response, body);
@@ -70,8 +70,8 @@ int handle_request(struct http_request *request, struct http_response *response)
         return 0;
     }
 
-    if(request->query_string != NULL && strcmp(request->query_string, "metadata") == 0) {
-        char* body = malloc(128);
+    if (request->query_string != NULL && strcmp(request->query_string, "metadata") == 0) {
+        char *body = malloc(128);
         response->body_size = sprintf(body, "<h1>File metadata: %s</h1><ul><li>Extension: %s</li><li>Size: %zub</li></ul>", path, filedata->file_ext, filedata->buf_size);
         add_static_body_to_response(response, body);
         add_header_to_response(response, "Content-Type", "text/html");

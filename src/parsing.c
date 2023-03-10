@@ -126,7 +126,11 @@ size_t get_serialized_response_buffer_size(struct http_response *res) {
 }
 
 size_t serialize_response(struct http_response *res, char *response_buf) {
-    size_t bytes_written = sprintf(response_buf, "HTTP/1.1 %s\r\n%s\r\n\r\n%s", res->status, res->headers, res->body);
+    size_t bytes_written = sprintf(response_buf, "HTTP/1.1 %s\r\n%s\r\n\r\n", res->status, res->headers);
+    if (res->body != NULL) {
+        memcpy(response_buf + bytes_written, res->body, res->body_size);
+        bytes_written += res->body_size;
+    }
     return bytes_written;
 }
 

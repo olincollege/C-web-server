@@ -3,20 +3,20 @@
 
 #include <stddef.h>
 
-struct http_request{
-    char* method;
-    char* path;
-    char* query_string;
-    char* headers;
-    char* body;
+struct http_request {
+    char *method;
+    char *path;
+    char *query_string;
+    char *headers;
+    char *body;
 };
 
 struct http_response {
     size_t header_size;
     size_t body_size;
-    char* status;
-    char* headers;
-    char* body;
+    char *status;
+    char *headers;
+    char *body;
 };
 
 /**
@@ -25,7 +25,7 @@ struct http_response {
  * @param request_str A string containing the HTTP request
  * @return A http_request struct containing the parsed request
  */
-struct http_request *parse_request(char* request_str);
+struct http_request *parse_request(char *request_str);
 
 /**
 * Frees the memory allocated to a http_request struct
@@ -53,7 +53,7 @@ void print_request(struct http_request *req);
  *
  * @return A pointer to the new http_response struct
  */
-struct http_response * new_response();
+struct http_response *new_response();
 
 /**
  * Adds a header to a http_response struct
