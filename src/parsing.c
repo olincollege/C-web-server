@@ -33,11 +33,11 @@ struct http_request *parse_request(char *request_str) {
 
     // Parse request headers
     req->headers = NULL;
-    while ((line = strtok(NULL, "\n\n")) && *line != '\0') {
+    while ((line = strtok(NULL, "\n")) && *line != '\0') {
         if (i > 0) {
             size_t offset = req->headers == NULL ? 0 : strlen(req->headers);
-            req->headers = realloc(req->headers, offset + strlen(line) + 1);
-            strcat(req->headers, "\n");
+            req->headers = realloc(req->headers, offset + strlen(line) + 2);
+            strcat(req->headers, "\r\n");
             strcat(req->headers, line);
         } else {
             req->headers = strdup(line);
@@ -48,7 +48,7 @@ struct http_request *parse_request(char *request_str) {
         }
     }
     if (req->headers != NULL) {
-        req->headers[strlen(req->headers) - 3] = '\0';
+        req->headers[strlen(req->headers) - 4] = '\0';
     }
     line = strtok(NULL, "\r\n\r\n");
     // Parse request body (if any) and copy everything to req.body
@@ -60,7 +60,7 @@ struct http_request *parse_request(char *request_str) {
 }
 
 void print_request(struct http_request *req) {
-    printf("\"%s\" request to \"%s\" qs \"%s\" with headers:\n\"%s\"\nand body:\n\"%s\"\n",
+    printf("\"%s\" request to \"%s\" as \"%s\" with headers:\n\"%s\"\nand body:\n\"%s\"\n",
            req->method, req->path, req->query_string, req->headers, req->body);
 }
 
