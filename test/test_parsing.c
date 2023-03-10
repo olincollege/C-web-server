@@ -6,17 +6,17 @@
 // NOLINTBEGIN(*-magic-numbers)
 
 
-char *example_post_request_text = "POST /path?query=value HTTP/1.1\r\n"
-                                  "Host: localhost\r\n"
-                                  "User-Agent: curl/7.64.1\r\n"
-                                  "Accept: */*\r\n"
+char *example_post_request_text = "POST /path?query=value HTTP/1.1\n"
+                                  "Host: localhost\n"
+                                  "User-Agent: curl/7.64.1\n"
+                                  "Accept: */*\r\n\r\n"
                                   "postdata";
 char *example_post_request = NULL;
 
-char *example_get_request_text = "GET /path?query=value HTTP/1.1\r\n"
-                                 "Host: localhost\r\n"
-                                 "User-Agent: curl/7.64.1\r\n"
-                                 "Accept: */*\r\n";
+char *example_get_request_text = "GET /path?query=value HTTP/1.1\n"
+                                 "Host: localhost\n"
+                                 "User-Agent: curl/7.64.1\n"
+                                 "Accept: */*\r\n\r\n";
 char *example_get_request = NULL;
 
 void setup_requests() {
@@ -48,8 +48,8 @@ Test(parse_post_request, parse_request, .init = setup_requests, .fini = cleanup_
 
 // Test parsing a GET request
 Test(parse_get_request, parse_request, .init = setup_requests, .fini = cleanup_requests) {
-    struct http_request *req = parse_request(example_post_request);
-    cr_assert(eq(str, req->method, "POST"));
+    struct http_request *req = parse_request(example_get_request);
+    cr_assert(eq(str, req->method, "GET"));
     cr_assert(eq(str, req->path, "/path"));
     cr_assert(eq(str, req->query_string, "query=value"));
     cr_assert(eq(str, req->headers, "Host: localhost\r\n"
