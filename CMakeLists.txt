@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.2)
 project(C_web_server C)
 
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 17)
+
+set(CMAKE_C_FLAGS "-Wall -Wextra -pedantic -Wshadow -Wconversion -Wunreachable-code")
 
 add_subdirectory(src)
 
